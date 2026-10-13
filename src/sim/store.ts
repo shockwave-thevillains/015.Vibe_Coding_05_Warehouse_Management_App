@@ -8,6 +8,7 @@ export const SPEEDS = [0, 1, 5, 20] as const;
 export type Speed = (typeof SPEEDS)[number];
 
 export type OpsTab = 'docks' | 'forklifts' | 'trucks';
+export type ZoomDir = 1 | -1 | 0 | 'panorama';
 
 interface Store {
   sim: SimState;
@@ -21,8 +22,8 @@ interface Store {
   lastTickPerf: number;
   /** Bumped to ask the camera to fly somewhere (see CameraRig). */
   focusNonce: number;
-  /** Bumped by the zoom buttons; sign is the direction. */
-  zoomRequest: { nonce: number; dir: 1 | -1 | 0 };
+  /** Bumped by the map buttons: zoom in/out, back home (0) or the wide panorama. */
+  zoomRequest: { nonce: number; dir: ZoomDir };
 
   tick: (realDt: number) => void;
   setHub: (id: HubId) => void;
@@ -31,7 +32,7 @@ interface Store {
   setHovered: (id: string | null) => void;
   setOpsTab: (t: OpsTab) => void;
   toggleLabels: () => void;
-  zoom: (dir: 1 | -1 | 0) => void;
+  zoom: (dir: ZoomDir) => void;
 
   prioritise: (truckId: string) => void;
   reorder: (sku: string) => void;

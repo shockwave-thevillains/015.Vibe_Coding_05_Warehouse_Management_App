@@ -1,4 +1,4 @@
-import { House, Minus, Plus, Tag } from 'lucide-react';
+import { House, Minus, Mountain, Plus, Tag } from 'lucide-react';
 import { useStore } from '../sim/store';
 
 export function MapControls() {
@@ -23,6 +23,16 @@ export function MapControls() {
         title="Reset view"
       >
         <House size={16} />
+      </button>
+      <button
+        onClick={() => {
+          select({ kind: 'hub' });
+          zoom('panorama');
+        }}
+        aria-label="Panorama view"
+        title="Panorama view"
+      >
+        <Mountain size={16} />
       </button>
       <button onClick={toggleLabels} aria-pressed={showLabels} aria-label="Truck labels" title="Truck labels">
         <Tag size={16} />

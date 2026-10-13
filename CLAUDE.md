@@ -22,6 +22,9 @@ npm run build     # tsc -b && vite build — must pass before committing
   with `smoothNow()`. Truck movement is derived from `truckPose()` (curves in `scene/layout.ts`).
 - `scene/zones.ts` must stay free of three.js imports (UI imports it; keeps three out of the main chunk).
 - Truck labels are a DOM overlay (`TruckLabels.tsx`) projected each frame — drei `<Html>` dropped labels.
+- `scene/World.tsx` is the decorative surroundings (sky dome, mountains, city, airport, housing,
+  estate, traffic) — keep it off the depot footprint (x≈±190, z −80…120) and the truck paths on the
+  main road. The page opens on `PANORAMA` and flies to `HOME` (skipped with reduced motion).
 - Desktop: overlays float over a full-screen canvas; `ViewOffset` shifts the projection so the yard
   centers left of the side panel. ≤900px: everything stacks and the page scrolls.
 

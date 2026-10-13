@@ -11,6 +11,12 @@ import { smoothNow } from './Trucks';
 export const HOME_TARGET = new THREE.Vector3(0, 0, 8);
 /** Camera offset from its target for the default three-quarter view. */
 export const HOME_OFFSET = new THREE.Vector3(74, 90, 112);
+/** Low, wide view over the whole area — city, airport and mountains on the horizon. */
+export const PANORAMA = { target: new THREE.Vector3(-110, 50, -420), pos: new THREE.Vector3(380, 190, 400) };
+
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** The page opens on the panorama and glides down to the depot, unless motion is reduced. */
+export const INTRO = !reducedMotion();
 
 const pose: Pose = { x: 0, z: 0, yaw: 0, visible: false };
 
@@ -44,20 +50,39 @@ export function CameraRig({ compact }: { compact: boolean }) {
   const camera = useThree((s) => s.camera);
   const focusNonce = useStore((s) => s.focusNonce);
   const zoomRequest = useStore((s) => s.zoomRequest);
-  const flight = useRef<{ target: THREE.Vector3; pos: THREE.Vector3 } | null>(null);
+  const flight = useRef<{ target: THREE.Vector3; pos: THREE.Vector3; rate?: number } | null>(null);
   const offsetScale = compact ? 1.1 : 1;
+  const first = useRef(true);
+  const home = () => ({ target: HOME_TARGET.clone(), pos: HOME_TARGET.clone().add(HOME_OFFSET.clone().multiplyScalar(offsetScale)) });
+
+  useEffect(() => {
+    if (!INTRO) return;
+    const ctl = controls.current;
+    if (ctl) {
+      camera.position.copy(PANORAMA.pos);
+      ctl.target.copy(PANORAMA.target);
+      ctl.update();
+    }
+    const id = window.setTimeout(() => (flight.current = { ...home(), rate: 1.3 }), 1200);
+    return () => window.clearTimeout(id);
+  }, []);
 
   // Fly to the selection (or back home) when asked.
   useEffect(() => {
     const ctl = controls.current;
     if (!ctl) return;
+    // Mounting isn't a request to move — the intro (or the initial pose) handles that.
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     const p = selectionPoint();
     if (p) {
       const dir = camera.position.clone().sub(ctl.target).normalize();
       const dist = Math.min(camera.position.distanceTo(ctl.target), 85 * offsetScale);
       flight.current = { target: p, pos: p.clone().add(dir.multiplyScalar(dist)) };
     } else {
-      flight.current = { target: HOME_TARGET.clone(), pos: HOME_TARGET.clone().add(HOME_OFFSET.clone().multiplyScalar(offsetScale)) };
+      flight.current = home();
     }
   }, [focusNonce, camera, offsetScale]);
 
@@ -65,7 +90,11 @@ export function CameraRig({ compact }: { compact: boolean }) {
     const ctl = controls.current;
     if (!ctl || zoomRequest.nonce === 0) return;
     if (zoomRequest.dir === 0) {
-      flight.current = { target: HOME_TARGET.clone(), pos: HOME_TARGET.clone().add(HOME_OFFSET.clone().multiplyScalar(offsetScale)) };
+      flight.current = home();
+      return;
+    }
+    if (zoomRequest.dir === 'panorama') {
+      flight.current = { target: PANORAMA.target.clone(), pos: PANORAMA.pos.clone(), rate: 2.2 };
       return;
     }
     const offset = camera.position.clone().sub(ctl.target);
@@ -77,24 +106,24 @@ export function CameraRig({ compact }: { compact: boolean }) {
     const ctl = controls.current;
     const f = flight.current;
     if (!ctl || !f) return;
-    const k = 1 - Math.exp(-delta * 4.5);
+    const k = 1 - Math.exp(-delta * (f.rate ?? 4.5));
     ctl.target.lerp(f.target, k);
     camera.position.lerp(f.pos, k);
     ctl.update();
-    if (camera.position.distanceTo(f.pos) < 0.05 && ctl.target.distanceTo(f.target) < 0.05) flight.current = null;
+    if (camera.position.distanceTo(f.pos) < 0.1 && ctl.target.distanceTo(f.target) < 0.1) flight.current = null;
   });
 
   return (
     <OrbitControls
       ref={controls}
       makeDefault
-      target={HOME_TARGET}
+      target={INTRO ? PANORAMA.target : HOME_TARGET}
       enableDamping
       dampingFactor={0.08}
       minDistance={25}
-      maxDistance={260}
+      maxDistance={1100}
       minPolarAngle={0.25}
-      maxPolarAngle={1.25}
+      maxPolarAngle={1.5}
       // A hand on the controls cancels any flight in progress.
       onStart={() => (flight.current = null)}
     />

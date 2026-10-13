@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../sim/store';
 import { Buildings } from './Buildings';
-import { CameraRig, HOME_OFFSET, HOME_TARGET } from './CameraRig';
+import { CameraRig, HOME_OFFSET, HOME_TARGET, INTRO, PANORAMA } from './CameraRig';
 import { Forklifts } from './Forklifts';
 import { Pallets } from './Pallets';
 import { Site } from './Site';
 import { Trucks } from './Trucks';
+import { HORIZON, World } from './World';
 import { LabelProjector, TruckLabels } from './TruckLabels';
 
 function useCompact() {
@@ -47,7 +48,7 @@ function ViewOffset({ compact }: { compact: boolean }) {
 export default function Scene() {
   const compact = useCompact();
   const select = useStore((s) => s.select);
-  const cam = HOME_TARGET.clone().add(HOME_OFFSET.clone().multiplyScalar(compact ? 1.1 : 1));
+  const cam = INTRO ? PANORAMA.pos.clone() : HOME_TARGET.clone().add(HOME_OFFSET.clone().multiplyScalar(compact ? 1.1 : 1));
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function Scene() {
       className="scene-canvas"
       shadows={compact ? false : 'percentage'}
       dpr={compact ? [1, 1.5] : [1, 2]}
-      camera={{ position: cam.toArray(), fov: 30, near: 1, far: 900 }}
+      camera={{ position: cam.toArray(), fov: 30, near: 1, far: 8000 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -63,8 +64,8 @@ export default function Scene() {
       }}
       onPointerMissed={() => select({ kind: 'hub' })}
     >
-      <color attach="background" args={['#f1f4f8']} />
-      <fog attach="fog" args={['#f1f4f8', 260, 560]} />
+      <color attach="background" args={[HORIZON]} />
+      <fog attach="fog" args={[HORIZON, 800, 3400]} />
       <hemisphereLight args={['#ffffff', '#c9d3e3', 1.6]} />
       <directionalLight
         position={[60, 110, 50]}
@@ -79,6 +80,7 @@ export default function Scene() {
         shadow-camera-far={300}
         shadow-bias={-0.0004}
       />
+      <World />
       <Site />
       <Buildings />
       <Pallets />

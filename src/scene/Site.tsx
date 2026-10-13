@@ -10,15 +10,15 @@ export function Site() {
   return (
     <group>
       {/* ground */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} receiveShadow>
-        <planeGeometry args={[520, 420]} />
+      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 20]} receiveShadow>
+        <planeGeometry args={[380, 200]} />
         <meshStandardMaterial color={C.ground} />
       </mesh>
 
       <Grass />
 
       {/* access road + yard entrance */}
-      <Flat x={0} z={ROAD_Z} w={420} d={12} color={C.road} y={0.01} />
+      <Flat x={0} z={ROAD_Z} w={1200} d={12} color={C.road} y={0.01} />
       <Flat x={-1} z={DOCK_FACE_Z + 13} w={52} d={26} color={C.apron} y={0.02} />
       <Flat x={-50} z={14} w={26} d={18} color={C.apron} y={0.02} />
       <Flat x={-31} z={18} w={22} d={24} color={C.apron} y={0.015} />
@@ -44,10 +44,10 @@ function Flat({ x, z, w, d, color, y = 0.01 }: { x: number; z: number; w: number
 }
 
 function RoadMarkings() {
-  const dashes = useMemo(() => Array.from({ length: 52 }, (_, i) => -205 + i * 8), []);
+  const dashes = useMemo(() => Array.from({ length: 300 }, (_, i) => -1200 + i * 8), []);
   return (
     <>
-      <Instances limit={64} receiveShadow>
+      <Instances limit={320} receiveShadow>
         <planeGeometry args={[4, 0.35]} />
         <meshStandardMaterial color={C.line} />
         {dashes.map((x) => (
@@ -64,7 +64,7 @@ function RoadMarkings() {
       </Instances>
       {/* edge lines */}
       <Instances limit={4}>
-        <planeGeometry args={[420, 0.25]} />
+        <planeGeometry args={[2400, 0.25]} />
         <meshStandardMaterial color={C.line} />
         <Instance position={[0, 0.03, ROAD_Z - 5.4]} rotation-x={-Math.PI / 2} />
         <Instance position={[0, 0.03, ROAD_Z + 5.4]} rotation-x={-Math.PI / 2} />

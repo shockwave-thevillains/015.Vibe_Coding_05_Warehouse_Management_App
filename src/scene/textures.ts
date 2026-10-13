@@ -96,3 +96,20 @@ export function stripeTexture() {
     ctx.fillRect(0, 44, 256, 8);
   }));
 }
+
+/**
+ * One storey of curtain wall: a 2×1 grid of windows on a light frame. Repeats across tower
+ * faces; the bottom-left corner is plain frame colour, which roofs sample.
+ */
+export function windowTexture() {
+  const tex = canvasTexture(64, 64, (ctx) => {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = '#9db1d2';
+    for (const x of [6, 36]) ctx.fillRect(x, 10, 22, 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    for (const x of [6, 36]) ctx.fillRect(x, 10, 22, 12);
+  });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}

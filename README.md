@@ -11,6 +11,10 @@ server — sehingga bisa di-deploy langsung ke GitHub Pages.
 - **Peta 3D yard** — gudang utama, cross-dock, cold store, kantor, pallet, pohon, jalan.
   Truk benar-benar masuk dari jalan, mundur ke bay, bongkar/muat, lalu pergi. Forklift berkeliling
   di yard, pulang ke charger saat baterai lemah. Lampu status di atas tiap pintu dock.
+- **Dunia di sekitarnya** — kawasan industri tetangga, perumahan warga, kota dengan gedung tinggi,
+  bandara (pesawat lepas landas & mendarat bergantian), danau, ladang, turbin angin, mobil lalu-lalang,
+  dan pegunungan di cakrawala. Tombol ⛰ (Panorama view) memperlihatkan semuanya; halaman dibuka
+  dengan gambar panorama lalu kamera turun ke depot.
 - **Bisa diklik** — gedung/pin, pintu dock, truk, forklift → panel detail di kanan dan kamera
   terbang ke objek tersebut. Drag untuk memutar, scroll/pinch untuk zoom, tombol reset view.
 - **Simulasi live** — jam berjalan (1×, 5×, 20×, atau pause). Pesanan keluar mengurangi stok,
@@ -48,7 +52,7 @@ bila run pertama gagal karena Pages belum diaktifkan.
 | Path | Isi |
 | --- | --- |
 | `src/sim/` | Mesin simulasi murni (tanpa React): tipe, seed data, `step()`, aksi, store zustand |
-| `src/scene/` | Scene three.js: gedung, truk + jalur, forklift, pallet, kamera, label |
+| `src/scene/` | Scene three.js: gedung, truk + jalur, forklift, pallet, kamera, label; `World.tsx` = lingkungan sekitar (kota, bandara, perumahan, gunung) |
 | `src/ui/` | Panel dashboard: top bar, KPI, detail, shipment tracking, tab docks/forklifts/trucks |
 
 Ganti nama brand cukup di `src/ui/TopBar.tsx` (teks) dan `src/scene/textures.ts` (logo di dinding/truk).
