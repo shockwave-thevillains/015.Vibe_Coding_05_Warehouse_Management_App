@@ -283,10 +283,10 @@ function UserMenu() {
     <div className="user" ref={ref}>
       <button className="user-button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <span className="avatar" aria-hidden>
-          AC
+          ML
         </span>
         <span className="user-text">
-          <b>Alex Chen</b>
+          <b>Master Loki</b>
           <small>Operations Manager</small>
         </span>
         <ChevronDown size={16} />
