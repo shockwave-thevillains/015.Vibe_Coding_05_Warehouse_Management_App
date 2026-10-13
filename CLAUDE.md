@@ -25,6 +25,11 @@ npm run build     # tsc -b && vite build — must pass before committing
 - `scene/World.tsx` is the decorative surroundings (sky dome, mountains, city, airport, housing,
   estate, traffic) — keep it off the depot footprint (x≈±190, z −80…120) and the truck paths on the
   main road. The page opens on `PANORAMA` and flies to `HOME` (skipped with reduced motion).
+- Gate guards (`scene/Guards.tsx`) write `traffic` in `scene/trafficControl.ts` each frame from
+  trucks that are arriving/departing; `World.tsx` traffic reads it (stop lines + car-following).
+  The eastbound stop line must stay west of where arriving trucks join the lane (x = −150).
+- `uiHidden` (store, not persisted) hides every panel — `.ui-hidden` on `.app`, panels wrapper is
+  `inert`, `ViewOffset` eases the projection shift to 0. Shortcut: H.
 - Desktop: overlays float over a full-screen canvas; `ViewOffset` shifts the projection so the yard
   centers left of the side panel. ≤900px: everything stacks and the page scrolls.
 

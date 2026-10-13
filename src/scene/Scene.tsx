@@ -1,10 +1,11 @@
-import { Canvas, useThree } from '@react-three/fiber';
-import { useEffect, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../sim/store';
 import { Buildings } from './Buildings';
 import { CameraRig, HOME_OFFSET, HOME_TARGET, INTRO, PANORAMA } from './CameraRig';
 import { Forklifts } from './Forklifts';
+import { Guards } from './Guards';
 import { Pallets } from './Pallets';
 import { Site } from './Site';
 import { Trucks } from './Trucks';
@@ -25,23 +26,29 @@ function useCompact() {
 
 /**
  * On desktop the right-hand panel covers part of the canvas. Shift the projection so the
- * yard is centred in the area that is actually visible.
+ * yard is centred in the area that is actually visible (no shift while panels are hidden).
  */
 function ViewOffset({ compact }: { compact: boolean }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
-  useEffect(() => {
+  const shift = useRef(-1);
+  // Eased every frame so hiding / showing the panels slides the view instead of jumping.
+  useFrame((_, delta) => {
     const side = document.querySelector('.side');
-    const shift = compact || !side ? 0 : side.getBoundingClientRect().width + 32;
-    if (shift) {
-      camera.setViewOffset(size.width + shift, size.height, shift, 0, size.width, size.height);
-      camera.aspect = (size.width + shift) / size.height;
+    const hidden = useStore.getState().uiHidden;
+    const want = compact || hidden || !side ? 0 : side.getBoundingClientRect().width + 32;
+    const next = shift.current < 0 ? want : THREE.MathUtils.damp(shift.current, want, 6, delta);
+    const aspect = (size.width + next) / size.height;
+    if (Math.abs(next - shift.current) < 0.25 && Math.abs(camera.aspect - aspect) < 1e-4) return;
+    shift.current = Math.abs(next - want) < 0.25 ? want : next;
+    if (shift.current > 0) {
+      camera.setViewOffset(size.width + shift.current, size.height, shift.current, 0, size.width, size.height);
     } else {
       camera.clearViewOffset();
-      camera.aspect = size.width / size.height;
     }
+    camera.aspect = (size.width + shift.current) / size.height;
     camera.updateProjectionMatrix();
-  }, [camera, size, compact]);
+  });
   return null;
 }
 
@@ -86,6 +93,7 @@ export default function Scene() {
       <Pallets />
       <Trucks />
       <Forklifts />
+      <Guards />
       <CameraRig compact={compact} />
       <ViewOffset compact={compact} />
       <LabelProjector />

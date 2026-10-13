@@ -18,6 +18,8 @@ interface Store {
   hovered: string | null;
   opsTab: OpsTab;
   showLabels: boolean;
+  /** Panels hidden so the map fills the screen ("minimize"). Not persisted. */
+  uiHidden: boolean;
   /** performance.now() of the last tick, so the 3D scene can interpolate between ticks. */
   lastTickPerf: number;
   /** Bumped to ask the camera to fly somewhere (see CameraRig). */
@@ -32,6 +34,7 @@ interface Store {
   setHovered: (id: string | null) => void;
   setOpsTab: (t: OpsTab) => void;
   toggleLabels: () => void;
+  toggleUi: () => void;
   zoom: (dir: ZoomDir) => void;
 
   prioritise: (truckId: string) => void;
@@ -98,6 +101,7 @@ export const useStore = create<Store>()(
       hovered: null,
       opsTab: 'docks',
       showLabels: true,
+      uiHidden: false,
       lastTickPerf: performance.now(),
       focusNonce: 0,
       zoomRequest: { nonce: 0, dir: 0 },
@@ -115,6 +119,7 @@ export const useStore = create<Store>()(
       setHovered: (hovered) => set({ hovered }),
       setOpsTab: (opsTab) => set({ opsTab }),
       toggleLabels: () => set((st) => ({ showLabels: !st.showLabels })),
+      toggleUi: () => set((st) => ({ uiHidden: !st.uiHidden })),
       zoom: (dir) => set((st) => ({ zoomRequest: { nonce: st.zoomRequest.nonce + 1, dir } })),
 
       prioritise: (id) => set((st) => ({ sim: prioritiseTruck(st.sim, id) })),

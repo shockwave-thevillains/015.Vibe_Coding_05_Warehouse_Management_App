@@ -15,6 +15,11 @@ server — sehingga bisa di-deploy langsung ke GitHub Pages.
   bandara (pesawat lepas landas & mendarat bergantian), danau, ladang, turbin angin, mobil lalu-lalang,
   dan pegunungan di cakrawala. Tombol ⛰ (Panorama view) memperlihatkan semuanya; halaman dibuka
   dengan gambar panorama lalu kamera turun ke depot.
+- **Satpam gerbang** — tiap kali truk masuk/keluar, satpam barat memandu truk dengan tongkat
+  lampu dan satpam timur turun ke jalan memegang tanda STOP; lampu pos jaga berkedip dan mobil di
+  jalan raya berhenti & antre sampai manuver selesai.
+- **Minimize / Maximize** — tombol ⤡ di kontrol peta (atau tombol **H**) menyembunyikan semua panel
+  sementara supaya peta tampil penuh; klik *Show panels* atau tekan **H** lagi untuk mengembalikan.
 - **Bisa diklik** — gedung/pin, pintu dock, truk, forklift → panel detail di kanan dan kamera
   terbang ke objek tersebut. Drag untuk memutar, scroll/pinch untuk zoom, tombol reset view.
 - **Simulasi live** — jam berjalan (1×, 5×, 20×, atau pause). Pesanan keluar mengurangi stok,

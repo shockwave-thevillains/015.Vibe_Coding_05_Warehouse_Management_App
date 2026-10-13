@@ -7,6 +7,7 @@ import { seeded } from '../sim/rng';
 import { useStore } from '../sim/store';
 import { ROAD_Z } from './layout';
 import { C, windowTexture } from './textures';
+import { STOP_LINE_EAST, STOP_LINE_WEST, traffic } from './trafficControl';
 
 /*
  * Everything around the depot: sky, countryside, mountains on the horizon, a city skyline,
@@ -640,34 +641,64 @@ function onRoad(x: number, z: number) {
 const CAR_COLORS = ['#ffffff', '#9aa6b8', '#2f5bea', '#e4574b', '#1b2754', '#f2c14e', '#3a3f4b', '#d9dee6'];
 const CAR_COUNT = 28;
 const SPAN = 2400;
+const GAP = 7.5; // bumper-to-bumper spacing in a queue
 
-/** Cars on the main road, both directions. Purely visual; they don't yield to depot trucks. */
+interface Car {
+  x: number;
+  dir: 1 | -1;
+  /** Cruising speed and current speed (units/s). */
+  v: number;
+  speed: number;
+  color: THREE.Color;
+}
+
+/**
+ * Cars on the main road, both directions. They follow the car in front and stop at the depot's
+ * stop lines while the gate guards hold traffic for a truck (see trafficControl.ts).
+ */
 function Traffic() {
   const body = useRef<THREE.InstancedMesh>(null);
   const cabin = useRef<THREE.InstancedMesh>(null);
-  const cars = useMemo(() => {
+  const cars = useMemo<Car[]>(() => {
     const rnd = seeded(31337);
-    return Array.from({ length: CAR_COUNT }, (_, i) => ({
-      x: -SPAN / 2 + rnd() * SPAN,
-      dir: i % 2 ? 1 : -1,
-      v: 14 + rnd() * 10,
-      color: new THREE.Color(CAR_COLORS[i % CAR_COLORS.length]),
-    }));
+    return Array.from({ length: CAR_COUNT }, (_, i) => {
+      const v = 14 + rnd() * 10;
+      return { x: -SPAN / 2 + rnd() * SPAN, dir: i % 2 ? 1 : -1, v, speed: v, color: new THREE.Color(CAR_COLORS[i % CAR_COLORS.length]) };
+    });
   }, []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const p = useMemo(() => new THREE.Vector3(), []);
   const one = useMemo(() => new THREE.Vector3(1, 1, 1), []);
 
-  useFrame((_, delta) => {
+  useFrame((_, rawDelta) => {
     if (!body.current || !cabin.current) return;
     const running = useStore.getState().speed !== 0;
-    cars.forEach((c, i) => {
-      if (running) {
-        c.x += c.dir * c.v * Math.min(delta, 0.1);
+    const delta = running ? Math.min(rawDelta, 0.1) : 0;
+
+    for (const dir of [1, -1] as const) {
+      // "s" is distance travelled in the car's own direction; leaders have the largest s.
+      const lane = cars.filter((c) => c.dir === dir).sort((a, b) => b.x * dir - a.x * dir);
+      const stopS = dir > 0 ? STOP_LINE_EAST : -STOP_LINE_WEST;
+      lane.forEach((c, i) => {
+        const s = c.x * dir;
+        let limit = Infinity;
+        if (i > 0) limit = lane[i - 1].x * dir - GAP;
+        // Hold at the stop line — unless already past it, then clear the junction.
+        if (traffic.hold && s < stopS) limit = Math.min(limit, stopS);
+        if (dir > 0) for (const tx of traffic.eastboundTrucks) if (c.x < tx) limit = Math.min(limit, tx - 13);
+        const room = limit - s;
+        const want = Math.max(0, Math.min(c.v, room * 1.2));
+        c.speed += THREE.MathUtils.clamp(want - c.speed, -40 * delta, 9 * delta);
+        let next = s + c.speed * delta;
+        if (next > limit && limit > s) next = limit;
+        c.x = next * dir;
         if (c.x > SPAN / 2) c.x -= SPAN;
         if (c.x < -SPAN / 2) c.x += SPAN;
-      }
+      });
+    }
+
+    cars.forEach((c, i) => {
       const z = c.dir > 0 ? ROAD_Z + 2 : ROAD_Z - 2;
       q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, c.dir > 0 ? Math.PI / 2 : -Math.PI / 2);
       body.current!.setMatrixAt(i, m.compose(p.set(c.x, 0.55, z), q, one));

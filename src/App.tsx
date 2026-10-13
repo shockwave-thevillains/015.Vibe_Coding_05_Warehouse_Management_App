@@ -1,4 +1,5 @@
 import { Component, Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Maximize2 } from 'lucide-react';
 import { useStore } from './sim/store';
 import { DetailPanel } from './ui/DetailPanel';
 import { KpiCards } from './ui/KpiCards';
@@ -51,11 +52,28 @@ function SceneFallback({ reason }: { reason: string }) {
   );
 }
 
+/** "H" hides / shows every panel, unless the user is typing. */
+function useHideShortcut() {
+  const toggleUi = useStore((s) => s.toggleUi);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'h' || e.ctrlKey || e.metaKey || e.altKey) return;
+      if ((e.target as HTMLElement).closest('input, textarea, [contenteditable]')) return;
+      toggleUi();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [toggleUi]);
+}
+
 export default function App() {
   useSimClock();
+  useHideShortcut();
+  const uiHidden = useStore((s) => s.uiHidden);
+  const toggleUi = useStore((s) => s.toggleUi);
   const webgl = hasWebGL();
   return (
-    <div className="app">
+    <div className={`app${uiHidden ? ' ui-hidden' : ''}`}>
       <div className="scene">
         {webgl ? (
           <SceneBoundary>
@@ -68,13 +86,20 @@ export default function App() {
         )}
         <MapControls />
       </div>
-      <TopBar />
-      <KpiCards />
-      <div className="side">
-        <DetailPanel />
-        <OpsTabs />
+      <div className="panels" aria-hidden={uiHidden} inert={uiHidden}>
+        <TopBar />
+        <KpiCards />
+        <div className="side">
+          <DetailPanel />
+          <OpsTabs />
+        </div>
+        <ShipmentTracker />
       </div>
-      <ShipmentTracker />
+      {uiHidden && (
+        <button className="restore-pill card" onClick={toggleUi}>
+          <Maximize2 size={15} /> Show panels <kbd>H</kbd>
+        </button>
+      )}
     </div>
   );
 }
