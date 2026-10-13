@@ -1,4 +1,4 @@
-import { AlertTriangle, Bell, CheckCircle2, ChevronDown, Info, Pause, RotateCcw, Search, Warehouse } from 'lucide-react';
+import { AlertTriangle, Bell, CheckCircle2, ChevronDown, Info, Pause, RotateCcw, Search, User, Warehouse } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { clock, num, pct, rel } from '../lib/format';
 import { SPEEDS, useHub, useStore, type Speed } from '../sim/store';
@@ -283,10 +283,10 @@ function UserMenu() {
     <div className="user" ref={ref}>
       <button className="user-button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <span className="avatar" aria-hidden>
-          ML
+          <User size={17} />
         </span>
         <span className="user-text">
-          <b>Master Loki</b>
+          <b>Anonymous</b>
           <small>Operations Manager</small>
         </span>
         <ChevronDown size={16} />
